@@ -168,7 +168,7 @@ sub create_column_description {
 	print $fout "25\tNum\n";
 	print $fout "26\tNum\n";
 	print $fout "27\tNum\n";
-	print $fout "28\tnum\n";
+	print $fout "28\tNum\n";
 
 	close $fout
 		or die "Can't close $cd_foname:$!";

@@ -10,7 +10,7 @@ print "@ARGV\n";
 
 print @ARGV . "\n";
 
-die "usage categorize inputfile [outputfile]\n\n"
+die "usage ct.pl inputfile [outputfile]\n\n"
 	if @ARGV < 1;
 
 warn "[WARN] Ouput file is not specified. Default output fileaname will be used"
@@ -40,7 +40,7 @@ my $cd_foname = "coldesc.cd";
 
 &create_column_description($cd_foname);
 
-&create_train_and_test($out_fname);
+&create_train_test_and_target($out_fname);
 
 
 sub categorize {
@@ -177,13 +177,14 @@ sub create_column_description {
 
 
 
-sub create_train_and_test {
+sub create_train_test_and_target {
 	# сформировать обучающую и тестовую выборки 
 	# потом надо сделать чере пайпы ct.pl | clt.pl | ... понаделать команд
 	# 
 	my $cat_finame = shift @_;
 	my $train_foname = "train.tsv";
 	my $test_foname = "test.tsv";
+	my $target_foname = "target.tsv";
 	my $fin;
 	open $fin, "<$cat_finame"
 		or die "Can't open $cat_finame:$!";
@@ -193,23 +194,33 @@ sub create_train_and_test {
 	my $test_fout;
 	open $test_fout, ">$test_foname"
 		or die "Can't opne $test_foname:$!";
+	my $target_fout;
+	open $target_fout, ">$target_foname"
+		or die "Can't open $target_foname:$!";
+
 	my $rec_count = 0;
 	while (<$fin>) { 
 		chomp;	
 		$rec_count++;
 		my $fout;
-		if ($rec_count < 3000) { # в файле 4000 записей log_sep2015.txt 
+		if ($rec_count < 2500) { # в файле 4000 записей log_sep2015.txt 
 		# формируем обучающую выборку
 			# направляем поток в обучающий файл
 			$fout = $train_fout; 
-		} else {
+		} elsif ($rec_count < 3500)  {
 		# формируем тестовую выборку
 			# направляем поток в тестовый файл
 			$fout = $test_fout;
+		} else {
+		# формируем целевую выборку для применения полученной модели
+			# направляем поток в файл целевой выборки
+			$fout = $target_fout;
 		}
 		print $fout "$_\n";
 	};
-		
+
+	close $target_fout
+		or die "Can't close $target_foname:$!";	
 	close $test_fout
 		or die "Can't close $test_foname:$!";
 	close $train_fout
